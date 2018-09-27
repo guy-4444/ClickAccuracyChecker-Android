@@ -3,6 +3,7 @@ package guy4444.clickaccuracychecker;
 import android.graphics.Bitmap;
 import android.os.Build;
 import android.os.Bundle;
+import android.support.annotation.RequiresApi;
 import android.support.design.widget.CoordinatorLayout;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
@@ -19,15 +20,18 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import java.util.ArrayList;
+import java.util.List;
 
 public class Activity_Result extends AppCompatActivity {
 
     TextView text;
-    ImageView image;
+    ImageView imageClick;
+    ImageView imageTouch;
     FrameLayout view;
     View root;
 
-    ArrayList<int[]> vals = new ArrayList<>();
+    ArrayList<int[]> click_vals = new ArrayList<>();
+    ArrayList<int[]> touch_vals = new ArrayList<>();
     int viewHeight = 0;
     int viewWidth = 0;
 
@@ -45,10 +49,11 @@ public class Activity_Result extends AppCompatActivity {
 
         text = (TextView) findViewById(R.id.text);
         view = (FrameLayout) findViewById(R.id.view);
-        image = (ImageView) findViewById(R.id.image);
+        imageClick = (ImageView) findViewById(R.id.imageClick);
+        imageTouch = (ImageView) findViewById(R.id.imageTouch);
 
-        root.setOnTouchListener(touchListener);
-        root.setOnClickListener(clickListener);
+        view.setOnTouchListener(touchListener);
+        view.setOnClickListener(clickListener);
 
         initViewHeightAndWeight();
 
@@ -57,39 +62,73 @@ public class Activity_Result extends AppCompatActivity {
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                show2();
+                show3();
             }
         });
+
+    }
+
+
+
+    private void show3() {
+        int[][] click_valsArr = new int[2][click_vals.size()];
+        for (int i = 0; i < click_vals.size(); i++) {
+            click_valsArr[0][i] = click_vals.get(i)[0];
+            click_valsArr[1][i] = click_vals.get(i)[1];
+        }
+
+        int[][] touch_valsArr = new int[2][touch_vals.size()];
+        for (int i = 0; i < touch_vals.size(); i++) {
+            touch_valsArr[0][i] = touch_vals.get(i)[0];
+            touch_valsArr[1][i] = touch_vals.get(i)[1];
+        }
+
+
+        TugSway click_tugSway = new TugSway();
+        TugSway touch_tugSway = new TugSway();
+
+        click_tugSway.setRange(0, viewWidth, 0, viewHeight);
+        touch_tugSway.setRange(0, viewWidth, 0, viewHeight);
+
+        click_tugSway.setIsConstantScale(true);
+        touch_tugSway.setIsConstantScale(true);
+
+        Bitmap click_swayBitmap = click_tugSway.getSwayBitmap(100, 150, click_valsArr[0], click_valsArr[1]);
+        Bitmap touch_swayBitmap = touch_tugSway.getSwayBitmap(100, 150, touch_valsArr[0], touch_valsArr[1]);
+
+        imageClick.setImageBitmap(click_swayBitmap);
+        imageTouch.setImageBitmap(touch_swayBitmap);
     }
 
     private void show1() {
-        int[][] valsArr = new int[2][vals.size()];
-        for (int i = 0; i < vals.size(); i++) {
-            valsArr[0][i] = vals.get(i)[0];
-            valsArr[1][i] = vals.get(i)[1];
+        int[][] valsArr = new int[2][click_vals.size()];
+        for (int i = 0; i < click_vals.size(); i++) {
+            valsArr[0][i] = click_vals.get(i)[0];
+            valsArr[1][i] = click_vals.get(i)[1];
         }
         TugSway tugSway = new TugSway();
         tugSway.setRange(0, viewWidth, 0, viewHeight);
         tugSway.setIsConstantScale(true);
         //Bitmap swayBitmap = tugSway.getSwayBitmap(60, DemoData.getData()[0], DemoData.getData()[1], false);
 
-        Bitmap swayBitmap = tugSway.getSwayBitmap(80, valsArr[0], valsArr[1]);
-        image.setImageBitmap(swayBitmap);
+        Bitmap swayBitmap = tugSway.getSwayBitmap(80, 80, valsArr[0], valsArr[1]);
+        imageClick.setImageBitmap(swayBitmap);
     }
 
     private void show2() {
-        int[][] valsArr = new int[2][vals.size()];
-        for (int i = 0; i < vals.size(); i++) {
-            valsArr[0][i] = vals.get(i)[0];
-            valsArr[1][i] = vals.get(i)[1];
+        int[][] valsArr = new int[2][click_vals.size()];
+        for (int i = 0; i < click_vals.size(); i++) {
+            valsArr[0][i] = click_vals.get(i)[0];
+            valsArr[1][i] = click_vals.get(i)[1];
         }
         TugSway tugSway = new TugSway();
-        tugSway.setRange(-viewWidth/2, viewWidth/2, -viewHeight/2, viewHeight/2);
+//        tugSway.setRange(-viewWidth/2, viewWidth/2, -viewHeight/2, viewHeight/2); // middle accuracy
+        tugSway.setRange(0, viewWidth, 0, viewHeight);
         tugSway.setIsConstantScale(true);
         //Bitmap swayBitmap = tugSway.getSwayBitmap(60, DemoData.getData()[0], DemoData.getData()[1], false);
 
-        Bitmap swayBitmap = tugSway.getSwayBitmap(80, valsArr[0], valsArr[1]);
-        image.setImageBitmap(swayBitmap);
+        Bitmap swayBitmap = tugSway.getSwayBitmap(40, 80, valsArr[0], valsArr[1]);
+        imageClick.setImageBitmap(swayBitmap);
     }
 
     private void initViewHeightAndWeight() {
@@ -129,11 +168,14 @@ public class Activity_Result extends AppCompatActivity {
                 float x = event.getX();
                 float y = viewHeight - event.getY();
 
-                vals.add(new int[]{(int) (x-centerX), (int) (y-centerY)});
+                //touch_vals.add(new int[]{(int) (x-centerX), (int) (y-centerY)});
+                touch_vals.add(new int[]{(int) x, (int) y});
                 Log.i("ptttM", "onTouch: " + event.getActionMasked() + "  -  " + event.getX() + "," + event.getY());
+
+
             }
 
-            Log.i("ptttT", "onTouch: " + event.getActionMasked() + "  -  " + event.getX() + "," + event.getY());
+            //Log.i("ptttT", "onTouch: " + event.getActionMasked() + "  -  " + event.getX() + "," + event.getY());
 
 
             // let the touch event pass on to whoever needs it
@@ -148,13 +190,13 @@ public class Activity_Result extends AppCompatActivity {
             float x = lastTouchDownXY[0];
             float y = viewHeight - lastTouchDownXY[1];
 
-            vals.add(new int[]{(int) (x-centerX), (int) (y-centerY)});
+//            vals.add(new int[]{(int) (x-centerX), (int) (y-centerY)});// middle accuracy
             //vals.add(new int[]{(int) Math.abs((viewWidth/2)-x), (int) Math.abs((viewHeight/2)-y)});
-            //vals.add(new int[]{(int) x, (int) y});
+            click_vals.add(new int[]{(int) x, (int) y});
             // use the coordinates for whatever
-            text.setText((vals.get(vals.size()-1))[0] + ", " + (vals.get(vals.size()-1))[1]);
-            //text.setText(x + ", " + y);
-            Log.i("pttt", "onClick: x = " + x + ", y = " + y);
+            text.setText((click_vals.get(click_vals.size()-1))[0] + ", " + (click_vals.get(click_vals.size()-1))[1]);
+//            text.setText(x + ", " + y);
+//            Log.i("pttt", "onClick: x = " + x + ", y = " + y);
         }
     };
 
@@ -174,6 +216,8 @@ public class Activity_Result extends AppCompatActivity {
 
         //noinspection SimplifiableIfStatement
         if (id == R.id.action_settings) {
+            click_vals = new ArrayList<>();
+            touch_vals = new ArrayList<>();
             return true;
         }
 
